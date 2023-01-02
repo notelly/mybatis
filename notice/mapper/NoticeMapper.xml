@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="co.yedam.notice.mapper.NoticeMapper">
+	<insert id="insertNotice" parameterType="NoticeVO">
+		insert into
+		notice(notice_id, notice_writer, notice_title, notice_subject,
+		notice_date)
+		values(notice_seq.nextval, #{noticeWriter},
+		#{noticeTitle}, #{noticeSubject}, sysdate)
+	</insert>
+	<!-- 한건조회 -->
+	<select id="searchNotice" parameterType="int"
+		resultType="NoticeVO">
+		select * from notice
+		where notice_id = #{noticeId}
+	</select>
+	<!-- 조회수 -->
+	<update id="addHitCount" parameterType="int">
+		update notice set
+		hit_count = hit_count+1
+		where notice_id = #{noticeId}
+	</update>
+	<!-- 수정 -->
+	<update id="updateNotice" parameterType="NoticeVO">
+		update notice set
+		notice_title = #{noticeTitle}, notice_subject =
+		#{noticeSubject}
+		where
+		notice_id= #{noticeId}
+	</update>
+	<!-- 삭제 -->
+	<delete id="deleteNotice" parameterType="int">
+		DELETE notice WHERE
+		notice_id = #{noticeId}
+	</delete>
+	<!-- 게시물 총 개수 -->
+	<select id="noticeListPagingTotalCnt" resultType="int"
+		parameterType="SearchVo">
+		select count(1) from notice
+		<where>
+			<choose>
+				<when test="searchCondition == 'writer'">
+					notice_writer like '%'||#{keyword}||'%'
+				</when>
+				<when test="searchCondition == 'title'">
+					notice_title like '%'||#{keyword}||'%'
+				</when>
+				<when test="searchCondition == 'subject'">
+					notice_subject like '%'||#{keyword}||'%'
+				</when>
+				<otherwise>
+					1 = 1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+
+	<select id="noticeListPaging" parameterType="Criteria"
+		resultType="NoticeVO">
+		<![CDATA[
+		select * from
+		(select rownum rn, a. *
+		from (SELECT * FROM notice
+		]]>
+		<!-- rownum 때문 where은 처리 못하기 때문에 where은 포함하지 않는다. -->
+		<where>
+			<choose>
+				<when test="searchCondition == 'writer'">
+					notice_writer like '%'||#{keyword}||'%'
+				</when>
+				<when test="searchCondition == 'title'">
+					notice_title like '%'||#{keyword}||'%'
+				</when>
+				<when test="searchCondition == 'subject'">
+					notice_subject like '%'||#{keyword}||'%'
+				</when>
+				<otherwise>
+					1 = 1
+				</otherwise>
+			</choose>
+		</where>
+		<![CDATA[
+		order by notice_id desc) a
+		where rownum <= (#{pageNum}*10)) b
+		where b.rn >= (#{pageNum}*10-9)
+		]]>
+		<!-- 비교구문을 처리하기 위해 적어줌 CDATA -->
+	</select>
+	
+	<select id= "forEachTest" parameterType = "NoticeVO" resultType="NoticeVO">
+		select * from notice
+		<foreach collection = "list" item="member" open=" where notice_id in (" separator="," close=")"
+		>
+		#{member.noticeId}
+		</foreach>
+	</select>
+	
+	<insert id="addCenterInfo" parameterType="java.util.Map">
+		insert into center_info
+		values(#{id}, #{centerName}, #{phoneNumber}, #{address})
+	</insert>
+	
+</mapper>  

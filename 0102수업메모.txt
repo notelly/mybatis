@@ -1,0 +1,82 @@
+pom.xml
+maven properties가서 mybatis 추가
+resources-config에 새로운 xml폴더를 만들어서
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<properties resource="config/db.properties"></properties> [추가]
+	<environments default="development">
+		<environment id="development">
+			<transactionManager type="JDBC" />
+			<dataSource type="POOLED"> [value db.properties보고 수정]
+				<property name="driver" value="${jdbc.driver}" />
+				<property name="url" value="${jdbc.url}" />
+				<property name="username" value="${jdbc.user}" />
+				<property name="password" value="${jdbc.password}" />
+			</dataSource>
+		</environment>
+	</environments>
+	<mappers>[해당경로로 새로운 파일 만듦]
+		<mapper resource="co/yedam/member/mapper/MemberMapper.xml" />
+	</mappers>
+</configuration>
+
+추가/수정
+
+Command에 DataSource 파일 추가
+
+
+
+매핑된 SQL 구문 살펴보기
+MemberMapper에
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="co.yedam.member.mapper.MemberMapper">
+  <select id="selectBlog" resultType="Blog">
+    select * from Blog where id = #{id}
+  </select>
+</mapper>
+추가
+
+뭐 많이 추가함.
+
+connection 객체를 가지고 와서
+
+sqlsession을 사용해서
+mapper파일이 가지고 있는 id값 = 메소드에 의해 처리된 값을 가지고 오겠다.
+
+
+
+새로추가하고 싶으면 mapper파일에 쿼리만 추가해주면된다.
+!-- id는 유일해야한다. String id 값을 받음으로 parameterType을 설정해준다. -->
+  <select id = "searchMember" resultType = "MemberVO" parameterType="string">
+  	select * from member where member_id=#{id}
+  </select>
+
+그리고 MemberServcieImplMybatis에서 기존에 있는 searchMember를 
+	@Override
+	public MemberVO searchMember(String id) {
+		//이 맵파일 안에 있는 파일을 실행하겠습니다., id값을 넘기겠습니다.
+		return session.selectOne("co.yedam.member.mapper.MemberMapper.searchMember", id);
+		
+	}
+이렇게 수정을 해준다.
+
+MemberMapeer가 MemberDAO와 비슷한 역할을 한다.
+
+
+frontCountroll에서 noticeList.do -> NoticeList.java
+NoticeServiceImpl에서 NoticeServiceImplMybatis로 변경
+NoticeServiceImplMybatis.java return값을 적어준다.
+
+public int noticeListPagingTotalCnt(SearchVO svo)
+return mapper.noticeListPagingTotalCnt(svo);
+
+public List<NoticeVO> noticeListPaging(int pageNum, SearchVO svo)
+return mapper.noticeListPaging(cri);
+
+각각의 값을 리턴해준다.
